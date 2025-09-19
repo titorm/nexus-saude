@@ -1,0 +1,48 @@
+{
+    "name": "nexus-saude",
+    "version": "1.0.0",
+    "description": "Sistema de prontuário eletrônico modular para hospitais",
+    "keywords": [
+        "healthcare",
+        "ehr",
+        "hospital",
+        "medical-records"
+    ],
+    "homepage": "https://github.com/nexus-saude/nexus-saude#readme",
+    "bugs": {
+        "url": "https://github.com/nexus-saude/nexus-saude/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/nexus-saude/nexus-saude.git"
+    },
+    "license": "UNLICENSED",
+    "private": true,
+    "workspaces": [
+        "apps/**",
+        "packages/**"
+    ],
+    "scripts": {
+        "build": "turbo build",
+        "dev": "turbo dev",
+        "lint": "turbo lint",
+        "test": "turbo test",
+        "type-check": "turbo type-check",
+        "clean": "turbo clean",
+        "db:generate": "turbo db:generate",
+        "db:migrate": "turbo db:migrate",
+        "db:seed": "turbo db:seed",
+        "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+    },
+    "devDependencies": {
+        "@turbo/gen": "^1.10.7",
+        "prettier": "^3.0.0",
+        "turbo": "^2.5.6",
+        "typescript": "^5.1.0"
+    },
+    "engines": {
+        "node": ">=22.0.0",
+        "pnpm": ">=10.0.0"
+    },
+    "packageManager": "pnpm@10.16.1"
+}

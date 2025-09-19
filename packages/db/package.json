@@ -1,0 +1,25 @@
+{
+    "name": "@nexus/db",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "type-check": "tsc --noEmit",
+        "lint": "eslint src --ext .ts"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@nexus/eslint-config": "workspace:*",
+        "@nexus/tsconfig": "workspace:*",
+        "eslint": "^8.45.0",
+        "typescript": "^5.1.0"
+    }
+}

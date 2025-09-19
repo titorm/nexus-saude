@@ -1,0 +1,20 @@
+# Copie este arquivo para terraform.tfvars e preencha com seus valores
+
+environment = "dev"
+
+# Configurações do Supabase
+supabase_access_token = "your-supabase-access-token"
+supabase_org_id      = "your-organization-id"
+supabase_region      = "us-east-1"
+
+# Senha do banco de dados (mínimo 8 caracteres)
+database_password = "your-secure-password"
+
+# URL do Redis (Upstash ou outro provider)
+redis_url = "redis://your-redis-url"
+
+# AWS configurations
+aws_region = "us-east-1"
+
+# Set to true only if you need to create the S3 bucket for Terraform state
+create_state_bucket = false

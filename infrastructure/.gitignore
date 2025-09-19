@@ -1,0 +1,10 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# Credentials
+credentials.json
+service-account.json

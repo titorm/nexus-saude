@@ -1,0 +1,38 @@
+{
+    "name": "@nexus/web",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "type-check": "tsc --noEmit",
+        "lint": "eslint src --ext .ts,.tsx"
+    },
+    "dependencies": {
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1",
+        "@tanstack/react-router": "^1.131.48",
+        "@tanstack/react-query": "^5.89.0",
+        "@tanstack/router-devtools": "^1.131.48",
+        "@tanstack/query-devtools": "^5.87.3",
+        "axios": "^1.12.2",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.544.0",
+        "zod": "^4.1.9"
+    },
+    "devDependencies": {
+        "@nexus/eslint-config": "workspace:*",
+        "@nexus/tsconfig": "workspace:*",
+        "@types/react": "^19.1.13",
+        "@types/react-dom": "^19.1.9",
+        "@vitejs/plugin-react": "^5.0.3",
+        "autoprefixer": "^10.4.21",
+        "eslint": "^9.36.0",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.13",
+        "typescript": "^5.9.2",
+        "vite": "^7.1.6"
+    }
+}
