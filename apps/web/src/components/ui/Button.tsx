@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { forwardRef } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -8,9 +9,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, disabled, children, ...props }, ref) => {
-    const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50 transition-colors';
-    
+  (
+    { className, variant = 'primary', size = 'md', isLoading, disabled, children, ...props },
+    ref
+  ) => {
+    const baseClasses =
+      'inline-flex items-center justify-center rounded-md font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:pointer-events-none disabled:opacity-50 transition-colors';
+
     const variants = {
       primary: 'bg-primary-600 text-white hover:bg-primary-700',
       secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
@@ -18,7 +23,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ghost: 'hover:bg-gray-100 text-gray-600 hover:text-gray-900',
       danger: 'bg-error-600 text-white hover:bg-error-700',
     };
-    
+
     const sizes = {
       sm: 'h-8 px-3 text-sm',
       md: 'h-10 px-4 py-2',
@@ -27,12 +32,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <button
-        className={cn(
-          baseClasses,
-          variants[variant],
-          sizes[size],
-          className
-        )}
+        className={cn(baseClasses, variants[variant], sizes[size], className)}
         ref={ref}
         disabled={disabled || isLoading}
         {...props}

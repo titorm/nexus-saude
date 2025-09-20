@@ -32,13 +32,9 @@ export function LoginPage() {
     },
     onSuccess: (data) => {
       setError('');
-      
-      // Redirecionar baseado no role do usuário
-      if (data.user.role === 'administrator') {
-        navigate({ to: '/dashboard' });
-      } else {
-        navigate({ to: '/patients' });
-      }
+
+      // Redirecionar para home por enquanto (as rotas específicas serão criadas depois)
+      navigate({ to: '/' });
     },
     onError: (error: any) => {
       setError(error.response?.data?.message || 'Erro ao fazer login');
@@ -48,7 +44,7 @@ export function LoginPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!email || !password) {
       setError('Email e senha são obrigatórios');
       return;
@@ -61,14 +57,12 @@ export function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Nexus Saúde
-          </h2>
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">Nexus Saúde</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Entre na sua conta para acessar o sistema
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -87,7 +81,7 @@ export function LoginPage() {
                 placeholder="seu@email.com"
               />
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Senha

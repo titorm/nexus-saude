@@ -1,10 +1,13 @@
 {
-  "extends": "@nexus/tsconfig/nextjs.json",
+  "extends": "@nexus/tsconfig/base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "types": ["vite/client"]
   },
   "include": ["src", "vite.config.ts"],
   "exclude": ["dist", "node_modules"]
