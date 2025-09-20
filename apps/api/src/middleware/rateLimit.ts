@@ -100,3 +100,15 @@ export const generalRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   message: 'Limite de requests excedido. Tente novamente mais tarde.',
 });
+
+export const clinicalNotesRateLimit = createRateLimit({
+  max: 200, // 200 requests
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  message: 'Limite de requests para anotações médicas excedido. Tente novamente mais tarde.',
+});
+
+export const patientsRateLimit = createRateLimit({
+  max: 150, // 150 requests
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  message: 'Limite de requests para pacientes excedido. Tente novamente mais tarde.',
+});

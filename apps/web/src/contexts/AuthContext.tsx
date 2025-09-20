@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { apiClient } from '@/lib/api';
 
-interface User {
+export interface User {
   id: number;
   email: string;
   role: 'doctor' | 'administrator' | 'nurse';

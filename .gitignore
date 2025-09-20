@@ -138,6 +138,7 @@ playwright/.cache/
 
 # Local development
 .local/
+docs/development/
 
 # Sentry
 .sentryclirc

@@ -8,6 +8,20 @@
       "when": 1758317475779,
       "tag": "0000_curly_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1758335495751,
+      "tag": "0001_tough_malice",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1758342430311,
+      "tag": "0002_heavy_nicolaos",
+      "breakpoints": true
     }
   ]
 }

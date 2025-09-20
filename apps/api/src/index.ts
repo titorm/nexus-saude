@@ -5,8 +5,14 @@ import cookie from '@fastify/cookie';
 import jwt from '@fastify/jwt';
 import redis from '@fastify/redis';
 import { authRoutes } from './routes/auth.js';
+import { patientsRoutes } from './routes/patients.js';
+import { clinicalNotesRoutes } from './routes/clinicalNotes.js';
+import searchRoutes from './routes/search.routes.js';
+import { jobRoutes } from './routes/jobs.routes.js';
 import { securityHeaders, sanitizeInput, auditLogger } from './middleware/security.js';
 import { generalRateLimit } from './middleware/rateLimit.js';
+import { initializeSearchJobManager } from './jobs/index.js';
+import { getDb } from './db/index.js';
 
 const fastify = Fastify({
   logger: {
@@ -58,6 +64,10 @@ async function setupServer() {
 
   // Registrar rotas
   await fastify.register(authRoutes, { prefix: '/api/v1/auth' });
+  await fastify.register(patientsRoutes, { prefix: '/api/v1/patients' });
+  await fastify.register(clinicalNotesRoutes, { prefix: '/api/v1/clinical-notes' });
+  await fastify.register(searchRoutes, { prefix: '/api/v1/search' });
+  await fastify.register(jobRoutes, { prefix: '/api/v1/jobs' });
 
   // Health check endpoint
   fastify.get('/health', async () => {
@@ -83,6 +93,11 @@ const start = async () => {
   try {
     await setupServer();
 
+    // Initialize search job manager
+    const db = await getDb();
+    await initializeSearchJobManager(db);
+    fastify.log.info('🔄 Search job manager initialized');
+
     const port = Number(process.env.PORT) || 3001;
     const host = process.env.HOST || '0.0.0.0';
 
@@ -90,6 +105,10 @@ const start = async () => {
     fastify.log.info(`🚀 Server is running on http://${host}:${port}`);
     fastify.log.info(`📊 Health check available at http://${host}:${port}/health`);
     fastify.log.info(`🔐 Auth endpoints at http://${host}:${port}/api/v1/auth`);
+    fastify.log.info(`👥 Patients endpoints at http://${host}:${port}/api/v1/patients`);
+    fastify.log.info(`📝 Clinical Notes endpoints at http://${host}:${port}/api/v1/clinical-notes`);
+    fastify.log.info(`🔍 Search endpoints at http://${host}:${port}/api/v1/search`);
+    fastify.log.info(`⚙️ Job management endpoints at http://${host}:${port}/api/v1/jobs`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

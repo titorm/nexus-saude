@@ -26,14 +26,19 @@
         "@nexus/eslint-config": "workspace:*",
         "@nexus/tsconfig": "workspace:*",
         "@tailwindcss/postcss": "^4.1.13",
+        "@testing-library/jest-dom": "^6.8.0",
+        "@testing-library/react": "^16.3.0",
+        "@testing-library/user-event": "^14.6.1",
         "@types/react": "^19.1.13",
         "@types/react-dom": "^19.1.9",
         "@vitejs/plugin-react": "^5.0.3",
         "autoprefixer": "^10.4.21",
         "eslint": "^9.36.0",
+        "jsdom": "^27.0.0",
         "postcss": "^8.5.6",
         "tailwindcss": "^4.1.13",
         "typescript": "^5.9.2",
-        "vite": "^7.1.6"
+        "vite": "^7.1.6",
+        "vitest": "^3.2.4"
     }
 }

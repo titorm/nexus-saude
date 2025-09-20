@@ -1,0 +1,24 @@
+{
+    "name": "search-performance-test",
+    "version": "1.0.0",
+    "description": "Performance testing suite for the advanced search system",
+    "main": "performance-test.js",
+    "scripts": {
+        "test": "node performance-test.js",
+        "test:load": "node performance-test.js --load-test",
+        "test:stress": "node performance-test.js --stress-test"
+    },
+    "dependencies": {
+        "axios": "^1.6.0",
+        "commander": "^11.0.0",
+        "chalk": "^4.1.2"
+    },
+    "keywords": [
+        "performance",
+        "testing",
+        "search",
+        "benchmark"
+    ],
+    "author": "Nexus Saúde",
+    "license": "MIT"
+}
