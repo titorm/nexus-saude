@@ -6,7 +6,7 @@ import redis from '@fastify/redis';
 import { authRoutes } from './routes/auth.js';
 import { patientsRoutes } from './routes/patients.js';
 import { appointmentsRoutes } from './routes/appointments.js';
-import searchRoutes from './routes/search.routes.js';
+import { searchRoutes } from './routes/search.routes.js';
 import { jobRoutes } from './routes/jobs.routes.js';
 import { securityHeaders, sanitizeInput, auditLogger } from './middleware/security.js';
 import { generalRateLimit } from './middleware/rateLimit.js';

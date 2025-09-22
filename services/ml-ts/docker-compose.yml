@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  ml-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8001:8001'
+    environment:
+      - NODE_ENV=production
+      - PORT=8001
+      - HOST=0.0.0.0
+      - LOG_LEVEL=info
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=nexus_saude
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - MODELS_PATH=/app/models
+      - ENABLE_GPU=false
+      - BATCH_SIZE=32
+      - MODEL_CACHE_SIZE=5
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - nexus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8001/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=nexus_saude
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nexus-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - nexus-network
+    restart: unless-stopped
+
+networks:
+  nexus-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

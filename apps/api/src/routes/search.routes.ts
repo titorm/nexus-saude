@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { SearchService } from '../services/search.service.js';
 import {
@@ -12,379 +12,384 @@ import {
   searchEventSchema,
 } from '../schemas/search.js';
 
-const router = Router();
 const searchService = new SearchService();
 
-// Middleware temporário para auth (será implementado depois)
-const auth = (req: any, res: any, next: any) => {
-  req.user = { id: 1, role: 'doctor' }; // Mock user
-  next();
-};
+// Search routes function
+export async function searchRoutes(fastify: FastifyInstance) {
+  // Global Search
+  fastify.get(
+    '/search/global',
+    {
+      schema: {
+        querystring: globalSearchSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              results: { type: 'array' },
+              total: { type: 'number' },
+              hasMore: { type: 'boolean' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof globalSearchSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { q, limit = 20, offset = 0, types, filters } = request.query;
 
-// Middleware temporário para hospitalId (será implementado depois)
-const getHospitalId = (req: any, res: any, next: any) => {
-  req.hospitalId = 1; // Mock hospital ID
-  next();
-};
+        const results = await searchService.globalSearch(
+          {
+            q,
+            limit,
+            offset,
+            types,
+            filters,
+          },
+          1,
+          1
+        ); // hospitalId e userId mock
 
-/**
- * GET /api/search/global
- * Busca global unificada em todas as entidades
- */
-router.get('/global', auth, getHospitalId, async (req, res) => {
-  try {
-    const query = globalSearchSchema.parse({
-      ...req.query,
-      types: req.query.types ? JSON.parse(req.query.types as string) : undefined,
-      filters: req.query.filters ? JSON.parse(req.query.filters as string) : undefined,
-    });
-
-    const results = await searchService.globalSearch(query, req.hospitalId!, req.user!.id);
-
-    res.json({
-      success: true,
-      data: results,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de busca inválidos',
-        details: error.issues,
-      });
+        return {
+          results: results.results || [],
+          total: results.pagination?.total || 0,
+          hasMore: results.pagination?.hasNext || false,
+        };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro na busca global:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Autocomplete
+  fastify.get(
+    '/search/autocomplete',
+    {
+      schema: {
+        querystring: autocompleteSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              suggestions: { type: 'array' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof autocompleteSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { q, types, limit = 10 } = request.query;
 
-/**
- * GET /api/search/patients
- * Busca específica em pacientes
- */
-router.get('/patients', auth, getHospitalId, async (req, res) => {
-  try {
-    const query = searchPatientsSchema.parse(req.query);
+        const suggestions = await searchService.getAutocompleteSuggestions(
+          {
+            q,
+            types,
+            limit,
+          },
+          1
+        ); // hospitalId mock
 
-    const results = await searchService.searchPatients(query, req.hospitalId!);
-
-    res.json({
-      success: true,
-      data: results,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de busca inválidos',
-        details: error.issues,
-      });
+        return { suggestions };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro na busca de pacientes:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Search Patients
+  fastify.get(
+    '/search/patients',
+    {
+      schema: {
+        querystring: searchPatientsSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              patients: { type: 'array' },
+              total: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof searchPatientsSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { q, limit = 20, offset = 0, status, sortBy, sortOrder } = request.query;
 
-/**
- * GET /api/search/clinical-notes
- * Busca específica em notas clínicas
- */
-router.get('/clinical-notes', auth, getHospitalId, async (req, res) => {
-  try {
-    const query = searchClinicalNotesSchema.parse({
-      ...req.query,
-      types: req.query.types ? JSON.parse(req.query.types as string) : undefined,
-      priority: req.query.priority ? JSON.parse(req.query.priority as string) : undefined,
-      dateRange: req.query.dateRange ? JSON.parse(req.query.dateRange as string) : undefined,
-    });
+        const results = await searchService.searchPatients(
+          {
+            q,
+            limit,
+            offset,
+            status,
+            sortBy,
+            sortOrder,
+          },
+          1
+        ); // hospitalId mock
 
-    const results = await searchService.searchClinicalNotes(query, req.hospitalId!);
-
-    res.json({
-      success: true,
-      data: results,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de busca inválidos',
-        details: error.issues,
-      });
+        return {
+          patients: results,
+          total: results.length,
+        };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro na busca de notas clínicas:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Search Clinical Notes
+  fastify.get(
+    '/search/clinical-notes',
+    {
+      schema: {
+        querystring: searchClinicalNotesSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              notes: { type: 'array' },
+              total: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof searchClinicalNotesSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const {
+          q,
+          limit = 20,
+          offset = 0,
+          types,
+          priority,
+          authorId,
+          patientId,
+          dateRange,
+          tags,
+          sortBy,
+          sortOrder,
+        } = request.query;
 
-/**
- * GET /api/search/appointments
- * Busca específica em agendamentos
- */
-router.get('/appointments', auth, getHospitalId, async (req, res) => {
-  try {
-    const query = searchAppointmentsSchema.parse({
-      ...req.query,
-      status: req.query.status ? JSON.parse(req.query.status as string) : undefined,
-      dateRange: req.query.dateRange ? JSON.parse(req.query.dateRange as string) : undefined,
-    });
+        const results = await searchService.searchClinicalNotes(
+          {
+            q,
+            limit,
+            offset,
+            types,
+            priority,
+            authorId,
+            patientId,
+            dateRange,
+            tags,
+            sortBy,
+            sortOrder,
+          },
+          1
+        ); // hospitalId mock
 
-    const results = await searchService.searchAppointments(query, req.hospitalId!);
-
-    res.json({
-      success: true,
-      data: results,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de busca inválidos',
-        details: error.issues,
-      });
+        return {
+          notes: results,
+          total: results.length,
+        };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro na busca de agendamentos:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Search Appointments
+  fastify.get(
+    '/search/appointments',
+    {
+      schema: {
+        querystring: searchAppointmentsSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              appointments: { type: 'array' },
+              total: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof searchAppointmentsSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const {
+          q,
+          limit = 20,
+          offset = 0,
+          status,
+          doctorId,
+          patientId,
+          appointmentTypeId,
+          dateRange,
+          sortBy,
+          sortOrder,
+        } = request.query;
 
-/**
- * GET /api/search/autocomplete
- * Autocomplete para sugestões de busca
- */
-router.get('/autocomplete', auth, getHospitalId, async (req, res) => {
-  try {
-    const query = autocompleteSchema.parse({
-      ...req.query,
-      types: req.query.types ? JSON.parse(req.query.types as string) : undefined,
-    });
+        const results = await searchService.searchAppointments(
+          {
+            q,
+            limit,
+            offset,
+            status,
+            doctorId,
+            patientId,
+            appointmentTypeId,
+            dateRange,
+            sortBy,
+            sortOrder,
+          },
+          1
+        ); // hospitalId mock
 
-    const suggestions = await searchService.getAutocompleteSuggestions(query, req.hospitalId!);
-
-    res.json({
-      success: true,
-      data: suggestions,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de autocomplete inválidos',
-        details: error.issues,
-      });
+        return {
+          appointments: results,
+          total: results.length,
+        };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro no autocomplete:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Search History
+  fastify.get(
+    '/search/history',
+    {
+      schema: {
+        querystring: searchHistoryQuerySchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              history: { type: 'array' },
+              total: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof searchHistoryQuerySchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { limit = 50, offset = 0 } = request.query;
 
-/**
- * POST /api/search/events
- * Registrar evento de busca (clique em resultado)
- */
-router.post('/events', auth, getHospitalId, async (req, res) => {
-  try {
-    const event = searchEventSchema.parse(req.body);
+        const results = await searchService.getSearchHistory(
+          1, // userId mock
+          { limit, offset },
+          1 // hospitalId mock
+        );
 
-    await searchService.recordSearchEvent(
-      req.user!.id,
-      event,
-      req.hospitalId!,
-      event.clickedResultId
-    );
-
-    res.json({
-      success: true,
-      message: 'Evento registrado com sucesso',
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Dados do evento inválidos',
-        details: error.issues,
-      });
+        return {
+          history: results,
+          total: results.length,
+        };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro ao registrar evento de busca:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Search Analytics
+  fastify.get(
+    '/search/analytics',
+    {
+      schema: {
+        querystring: searchAnalyticsSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              totalSearches: { type: 'number' },
+              popularQueries: { type: 'array' },
+              searchesByType: { type: 'array' },
+              averageResponseTime: { type: 'number' },
+              successRate: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: z.infer<typeof searchAnalyticsSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { period = 'week' } = request.query;
 
-/**
- * GET /api/search/history
- * Obter histórico de buscas do usuário
- */
-router.get('/history', auth, getHospitalId, async (req, res) => {
-  try {
-    const query = searchHistoryQuerySchema.parse(req.query);
+        const analytics = await searchService.getSearchAnalytics({ period }, 1); // hospitalId mock
 
-    const history = await searchService.getSearchHistory(req.user!.id, query, req.hospitalId!);
-
-    res.json({
-      success: true,
-      data: history,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de histórico inválidos',
-        details: error.issues,
-      });
+        return analytics;
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
+  );
 
-    console.error('Erro ao buscar histórico:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
+  // Log Search Event
+  fastify.post(
+    '/search/events',
+    {
+      schema: {
+        body: searchEventSchema,
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+            },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Body: z.infer<typeof searchEventSchema> }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const event = request.body;
 
-/**
- * GET /api/search/analytics
- * Obter analytics de busca (apenas administradores)
- */
-router.get('/analytics', auth, getHospitalId, async (req, res) => {
-  try {
-    // Verificar se o usuário é administrador
-    if (req.user!.role !== 'administrator') {
-      return res.status(403).json({
-        success: false,
-        error: 'Acesso negado. Apenas administradores podem acessar analytics.',
-      });
+        await searchService.recordSearchEvent(
+          1, // userId mock
+          event,
+          1 // hospitalId mock
+        );
+
+        return { success: true };
+      } catch (error) {
+        request.log.error(error);
+        return reply.status(500).send({ error: 'Internal server error' });
+      }
     }
-
-    const query = searchAnalyticsSchema.parse(req.query);
-
-    const analytics = await searchService.getSearchAnalytics(query, req.hospitalId!);
-
-    res.json({
-      success: true,
-      data: analytics,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Parâmetros de analytics inválidos',
-        details: error.issues,
-      });
-    }
-
-    console.error('Erro ao buscar analytics:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
-
-/**
- * PUT /api/search/index/:entityType/:entityId
- * Atualizar índice de busca para uma entidade específica (apenas administradores)
- */
-router.put('/index/:entityType/:entityId', auth, getHospitalId, async (req, res) => {
-  try {
-    // Verificar se o usuário é administrador
-    if (req.user!.role !== 'administrator') {
-      return res.status(403).json({
-        success: false,
-        error: 'Acesso negado. Apenas administradores podem atualizar índices.',
-      });
-    }
-
-    const { entityType, entityId } = req.params;
-
-    // Validar entityType
-    const validEntityTypes = ['patient', 'clinical_note', 'appointment'];
-    if (!validEntityTypes.includes(entityType)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Tipo de entidade inválido',
-      });
-    }
-
-    // Validar entityId
-    const entityIdNum = parseInt(entityId, 10);
-    if (isNaN(entityIdNum)) {
-      return res.status(400).json({
-        success: false,
-        error: 'ID da entidade inválido',
-      });
-    }
-
-    await searchService.updateEntityIndex(entityType, entityIdNum, req.hospitalId!);
-
-    res.json({
-      success: true,
-      message: 'Índice atualizado com sucesso',
-    });
-  } catch (error) {
-    console.error('Erro ao atualizar índice:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
-
-/**
- * POST /api/search/reindex
- * Reindexar todas as entidades (apenas administradores)
- */
-router.post('/reindex', auth, getHospitalId, async (req, res) => {
-  try {
-    // Verificar se o usuário é administrador
-    if (req.user!.role !== 'administrator') {
-      return res.status(403).json({
-        success: false,
-        error: 'Acesso negado. Apenas administradores podem reindexar.',
-      });
-    }
-
-    // Nota: Implementação simplificada
-    // Em produção, isso deveria ser um job em background
-    res.json({
-      success: true,
-      message: 'Reindexação iniciada. Este processo pode levar alguns minutos.',
-    });
-
-    // TODO: Implementar job de reindexação em background
-    // - Buscar todas as entidades
-    // - Atualizar índices de busca
-    // - Notificar quando concluído
-  } catch (error) {
-    console.error('Erro ao iniciar reindexação:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-    });
-  }
-});
-
-export default router;
+  );
+}

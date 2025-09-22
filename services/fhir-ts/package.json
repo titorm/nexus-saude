@@ -1,0 +1,72 @@
+{
+  "name": "@nexus-saude/fhir-gateway",
+  "version": "1.0.0",
+  "description": "FHIR R4 Gateway Service - TypeScript implementation for healthcare interoperability",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "rm -rf dist",
+    "docker:build": "docker build -t nexus-fhir-gateway .",
+    "docker:run": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "docker:logs": "docker-compose logs -f fhir-gateway",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "fhir",
+    "r4",
+    "healthcare",
+    "interoperability",
+    "gateway",
+    "medical",
+    "clinical"
+  ],
+  "author": "Nexus Saúde",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "@fastify/rate-limit": "^9.1.0",
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^4.2.0",
+    "@types/fhir": "^0.0.41",
+    "@types/joi": "^17.2.3",
+    "@types/lodash": "^4.17.13",
+    "@types/node": "^22.18.6",
+    "@types/pg": "^8.15.5",
+    "@types/uuid": "^10.0.0",
+    "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
+    "dotenv": "^16.6.1",
+    "fastify": "^4.29.1",
+    "fhir": "^4.11.1",
+    "ioredis": "^5.4.1",
+    "joi": "^17.13.3",
+    "lodash": "^4.17.21",
+    "pg": "^8.16.3",
+    "pino": "^9.10.0",
+    "redis": "^4.7.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^8.57.1",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

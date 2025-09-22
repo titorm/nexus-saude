@@ -1,0 +1,202 @@
+version: '3.8'
+
+services:
+  ai-assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexus-ai-assistant
+    ports:
+      - '8002:8002'
+      - '9002:9002' # Metrics port
+    environment:
+      # Service Configuration
+      NODE_ENV: production
+      AI_HOST: 0.0.0.0
+      AI_PORT: 8002
+      DEBUG: 'false'
+
+      # Database Configuration
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nexus_saude
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: nexus_saude
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_SSL: 'false'
+      DB_MAX_CONNECTIONS: 20
+
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 1
+
+      # OpenAI Configuration (optional)
+      # OPENAI_API_KEY: your_openai_api_key_here
+      OPENAI_MODEL: gpt-3.5-turbo
+      OPENAI_TEMPERATURE: 0.3
+      OPENAI_MAX_TOKENS: 1000
+
+      # AI Configuration
+      ENABLE_OPENAI: 'false' # Set to true if you have OpenAI API key
+      ENABLE_LOCAL_MODELS: 'true'
+      MODEL_LOAD_TIMEOUT: 60000
+
+      # Medical Knowledge Configuration
+      MEDICAL_KNOWLEDGE_PATH: /app/data/medical_knowledge
+      ENABLE_MEDICAL_DB: 'true'
+      KNOWLEDGE_BASE_UPDATE_INTERVAL: 3600000
+
+      # NLP Configuration
+      SENTENCE_TRANSFORMER_MODEL: all-MiniLM-L6-v2
+
+      # Conversation Configuration
+      CONVERSATION_TIMEOUT: 30
+      MAX_CONVERSATION_MEMORY: 20
+      ENABLE_CONVERSATION_MEMORY: 'true'
+
+      # Monitoring Configuration
+      ENABLE_METRICS: 'true'
+      METRICS_PORT: 9002
+      LOG_LEVEL: info
+      LOG_FORMAT: json
+
+      # Security Configuration
+      ALLOWED_ORIGINS: 'http://localhost:3000,http://localhost:8000,http://localhost:5173'
+
+      # Performance Configuration
+      MAX_REQUEST_SIZE: 10mb
+      REQUEST_TIMEOUT: 30000
+
+      # Feature Flags
+      ENABLE_DIAGNOSTIC_SUGGESTIONS: 'true'
+      ENABLE_TREATMENT_RECOMMENDATIONS: 'true'
+      ENABLE_MEDICAL_ENTITY_EXTRACTION: 'true'
+
+      # Rate Limiting
+      RATE_LIMIT_MAX: 100
+      RATE_LIMIT_WINDOW: '1 minute'
+
+    volumes:
+      - ai_models:/app/models
+      - ai_knowledge:/app/data/medical_knowledge
+      - ai_logs:/app/logs
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8002/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    networks:
+      - nexus-network
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexus-postgres-ai
+    environment:
+      POSTGRES_DB: nexus_saude
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - '5433:5432' # Different port to avoid conflicts
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d nexus_saude']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - nexus-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis-ai
+    command: redis-server --appendonly yes --requirepass ""
+
+    volumes:
+      - redis_data:/data
+
+    ports:
+      - '6380:6379' # Different port to avoid conflicts
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - nexus-network
+
+  # Optional: Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nexus-prometheus-ai
+    ports:
+      - '9090:9090'
+
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ai_models:
+    driver: local
+  ai_knowledge:
+    driver: local
+  ai_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+
+networks:
+  nexus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

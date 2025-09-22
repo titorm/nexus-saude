@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { build } from '../app.js';
+import { build } from '../app';
 import type { FastifyInstance } from 'fastify';
 
 describe('Patients API Routes', () => {

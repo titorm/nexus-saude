@@ -3,6 +3,20 @@ import { render, screen } from '@testing-library/react';
 import type { User } from '@/contexts/AuthContext';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  refreshToken: () => Promise<boolean>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ) => Promise<{ success: boolean; error?: string }>;
+}
+
 // Mock RouteGuard temporarily since it might not exist yet
 const RouteGuard = ({
   children,

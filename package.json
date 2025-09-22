@@ -20,7 +20,8 @@
     "private": true,
     "workspaces": [
         "apps/**",
-        "packages/**"
+        "packages/**",
+        "services/**"
     ],
     "scripts": {
         "build": "turbo build",

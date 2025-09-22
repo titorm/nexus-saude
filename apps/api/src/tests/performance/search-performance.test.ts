@@ -1,7 +1,7 @@
 import { performance } from 'perf_hooks';
-import { db } from '../../lib/db';
-import { searchIndexes, patients, clinicalNotes, appointments } from '../../db/schema';
-import { SearchService } from '../../services/SearchService';
+import { getDb } from '../../db/index.js';
+import { searchIndexes, patients, clinicalNotes, appointments } from '../../db/schema.js';
+import { SearchService } from '../../services/search.service.js';
 import { eq, sql } from 'drizzle-orm';
 
 /**

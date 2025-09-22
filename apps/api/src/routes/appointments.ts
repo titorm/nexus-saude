@@ -2,17 +2,6 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authMiddleware } from '../middleware/auth.js';
 import { createRateLimit } from '../middleware/rateLimit.js';
 import { AppointmentsService } from '../services/appointments.service.js';
-import type { JWTPayload } from '../services/auth.service.js';
-import {
-  createAppointmentSchema,
-  updateAppointmentSchema,
-  rescheduleAppointmentSchema,
-  cancelAppointmentSchema,
-  confirmAppointmentSchema,
-  appointmentFiltersSchema,
-  appointmentParamsSchema,
-  doctorParamsSchema,
-} from '../schemas/appointments.js';
 import type {
   CreateAppointmentType,
   UpdateAppointmentType,

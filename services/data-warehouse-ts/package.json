@@ -1,0 +1,62 @@
+{
+    "name": "@nexus-saude/data-warehouse-ts",
+    "version": "1.0.0",
+    "description": "Data Warehouse Service - ETL pipelines, analytics, and business intelligence for Nexus Saúde",
+    "main": "dist/index.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsx src/index.ts",
+        "start": "node dist/index.js",
+        "test": "vitest",
+        "test:coverage": "vitest --coverage",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "eslint src/**/*.ts --fix",
+        "clean": "rm -rf dist"
+    },
+    "keywords": [
+        "data-warehouse",
+        "etl",
+        "analytics",
+        "business-intelligence",
+        "reporting",
+        "healthcare",
+        "nexus-saude",
+        "typescript"
+    ],
+    "author": "Nexus Saúde Team",
+    "license": "MIT",
+    "dependencies": {
+        "fastify": "^5.1.0",
+        "@fastify/cors": "^10.0.1",
+        "@fastify/helmet": "^12.0.1",
+        "@fastify/rate-limit": "^10.1.1",
+        "@fastify/websocket": "^11.0.1",
+        "pg": "^8.13.1",
+        "redis": "^4.7.0",
+        "drizzle-orm": "^0.36.4",
+        "node-cron": "^3.0.3",
+        "csv-parser": "^3.0.0",
+        "csv-writer": "^1.6.0",
+        "xlsx": "^0.18.5",
+        "lodash": "^4.17.21",
+        "moment": "^2.30.1",
+        "uuid": "^11.0.3",
+        "joi": "^17.13.3",
+        "winston": "^3.17.0",
+        "systeminformation": "^5.23.5"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.2",
+        "@types/pg": "^8.11.10",
+        "@types/lodash": "^4.17.13",
+        "@types/uuid": "^10.0.0",
+        "typescript": "^5.7.2",
+        "tsx": "^4.19.2",
+        "vitest": "^2.1.8",
+        "eslint": "^9.16.0",
+        "prettier": "^3.4.2",
+        "@typescript-eslint/eslint-plugin": "^8.18.1",
+        "@typescript-eslint/parser": "^8.18.1"
+    }
+}
