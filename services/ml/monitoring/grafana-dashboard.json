@@ -1,0 +1,419 @@
+{
+    "dashboard": {
+        "id": null,
+        "title": "Nexus Saúde ML Service Dashboard",
+        "tags": [
+            "nexus-saude",
+            "ml",
+            "healthcare"
+        ],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "30s",
+        "time": {
+            "from": "now-1h",
+            "to": "now"
+        },
+        "panels": [
+            {
+                "id": 1,
+                "title": "Service Health Status",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "up{job=\"nexus-ml-service\"}",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "thresholds": {
+                            "steps": [
+                                {
+                                    "color": "red",
+                                    "value": 0
+                                },
+                                {
+                                    "color": "green",
+                                    "value": 1
+                                }
+                            ]
+                        },
+                        "mappings": [
+                            {
+                                "options": {
+                                    "0": {
+                                        "text": "DOWN"
+                                    }
+                                },
+                                "type": "value"
+                            },
+                            {
+                                "options": {
+                                    "1": {
+                                        "text": "UP"
+                                    }
+                                },
+                                "type": "value"
+                            }
+                        ]
+                    }
+                },
+                "gridPos": {
+                    "h": 4,
+                    "w": 6,
+                    "x": 0,
+                    "y": 0
+                }
+            },
+            {
+                "id": 2,
+                "title": "CPU Usage",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "ml_system_cpu_usage_percent",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "unit": "percent",
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "thresholds": {
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": 0
+                                },
+                                {
+                                    "color": "yellow",
+                                    "value": 70
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 85
+                                }
+                            ]
+                        }
+                    }
+                },
+                "gridPos": {
+                    "h": 4,
+                    "w": 6,
+                    "x": 6,
+                    "y": 0
+                }
+            },
+            {
+                "id": 3,
+                "title": "Memory Usage",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "ml_system_memory_usage_bytes / 1024 / 1024 / 1024",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "unit": "bytes",
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "thresholds": {
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": 0
+                                },
+                                {
+                                    "color": "yellow",
+                                    "value": 2
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 4
+                                }
+                            ]
+                        }
+                    }
+                },
+                "gridPos": {
+                    "h": 4,
+                    "w": 6,
+                    "x": 12,
+                    "y": 0
+                }
+            },
+            {
+                "id": 4,
+                "title": "Active Alerts",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "count(ALERTS)",
+                        "refId": "A"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "thresholds": {
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": 0
+                                },
+                                {
+                                    "color": "yellow",
+                                    "value": 1
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 3
+                                }
+                            ]
+                        }
+                    }
+                },
+                "gridPos": {
+                    "h": 4,
+                    "w": 6,
+                    "x": 18,
+                    "y": 0
+                }
+            },
+            {
+                "id": 5,
+                "title": "Prediction Requests per Minute",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "rate(ml_model_predictions_total[1m]) * 60",
+                        "refId": "A",
+                        "legendFormat": "{{model_type}} predictions/min"
+                    }
+                ],
+                "yAxes": [
+                    {
+                        "label": "Predictions/min",
+                        "min": 0
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 4
+                }
+            },
+            {
+                "id": 6,
+                "title": "Model Prediction Latency",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "histogram_quantile(0.95, rate(ml_model_prediction_duration_seconds_bucket[5m]))",
+                        "refId": "A",
+                        "legendFormat": "95th percentile"
+                    },
+                    {
+                        "expr": "histogram_quantile(0.50, rate(ml_model_prediction_duration_seconds_bucket[5m]))",
+                        "refId": "B",
+                        "legendFormat": "50th percentile"
+                    }
+                ],
+                "yAxes": [
+                    {
+                        "label": "Latency (seconds)",
+                        "min": 0
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 4
+                }
+            },
+            {
+                "id": 7,
+                "title": "Model Accuracy",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "ml_model_accuracy{model_type=\"diagnostic\"}",
+                        "refId": "A"
+                    },
+                    {
+                        "expr": "ml_model_accuracy{model_type=\"risk\"}",
+                        "refId": "B"
+                    }
+                ],
+                "fieldConfig": {
+                    "defaults": {
+                        "unit": "percentunit",
+                        "color": {
+                            "mode": "thresholds"
+                        },
+                        "thresholds": {
+                            "steps": [
+                                {
+                                    "color": "red",
+                                    "value": 0
+                                },
+                                {
+                                    "color": "yellow",
+                                    "value": 0.8
+                                },
+                                {
+                                    "color": "green",
+                                    "value": 0.9
+                                }
+                            ]
+                        }
+                    }
+                },
+                "gridPos": {
+                    "h": 4,
+                    "w": 6,
+                    "x": 0,
+                    "y": 12
+                }
+            },
+            {
+                "id": 8,
+                "title": "Confidence Score Distribution",
+                "type": "histogram",
+                "targets": [
+                    {
+                        "expr": "ml_model_confidence_score",
+                        "refId": "A"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 6,
+                    "y": 12
+                }
+            },
+            {
+                "id": 9,
+                "title": "Training Jobs per Day",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "increase(ml_model_training_duration_seconds_count[24h])",
+                        "refId": "A",
+                        "legendFormat": "{{model_type}} trainings"
+                    }
+                ],
+                "gridPos": {
+                    "h": 6,
+                    "w": 12,
+                    "x": 18,
+                    "y": 12
+                }
+            },
+            {
+                "id": 10,
+                "title": "Error Rate",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "rate(ml_errors_total[5m]) * 300",
+                        "refId": "A",
+                        "legendFormat": "{{error_type}} errors/5min"
+                    }
+                ],
+                "yAxes": [
+                    {
+                        "label": "Errors per 5min",
+                        "min": 0
+                    }
+                ],
+                "gridPos": {
+                    "h": 6,
+                    "w": 12,
+                    "x": 0,
+                    "y": 18
+                }
+            },
+            {
+                "id": 11,
+                "title": "Database Operations",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "rate(ml_database_operations_total[1m]) * 60",
+                        "refId": "A",
+                        "legendFormat": "{{operation_type}} ops/min"
+                    }
+                ],
+                "gridPos": {
+                    "h": 6,
+                    "w": 12,
+                    "x": 12,
+                    "y": 18
+                }
+            },
+            {
+                "id": 12,
+                "title": "Data Drift Scores",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "ml_data_drift_score",
+                        "refId": "A",
+                        "legendFormat": "{{feature_name}} - {{model_type}}"
+                    }
+                ],
+                "yAxes": [
+                    {
+                        "label": "Drift Score",
+                        "min": 0,
+                        "max": 1
+                    }
+                ],
+                "gridPos": {
+                    "h": 6,
+                    "w": 24,
+                    "x": 0,
+                    "y": 24
+                }
+            }
+        ],
+        "templating": {
+            "list": [
+                {
+                    "name": "model_type",
+                    "type": "query",
+                    "query": "label_values(ml_model_predictions_total, model_type)",
+                    "refresh": 1,
+                    "includeAll": true,
+                    "allValue": ".*"
+                }
+            ]
+        },
+        "annotations": {
+            "list": [
+                {
+                    "name": "Model Training Events",
+                    "datasource": "prometheus",
+                    "expr": "changes(ml_model_accuracy[1h]) > 0",
+                    "titleFormat": "Model {{model_type}} retrained",
+                    "textFormat": "New accuracy: {{value}}"
+                }
+            ]
+        }
+    }
+}

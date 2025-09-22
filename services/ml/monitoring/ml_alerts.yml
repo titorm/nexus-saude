@@ -1,0 +1,193 @@
+# Prometheus alerting rules for Nexus Saúde ML Service
+groups:
+  - name: ml_service_alerts
+    rules:
+      # Service availability
+      - alert: MLServiceDown
+        expr: up{job="nexus-ml-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ml
+        annotations:
+          summary: 'ML Service is down'
+          description: 'Nexus Saúde ML Service has been down for more than 1 minute'
+
+      # System resource alerts
+      - alert: HighCPUUsage
+        expr: ml_system_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'High CPU usage detected'
+          description: 'CPU usage is {{ $value }}% for more than 5 minutes'
+
+      - alert: CriticalCPUUsage
+        expr: ml_system_cpu_usage_percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: ml
+        annotations:
+          summary: 'Critical CPU usage detected'
+          description: 'CPU usage is {{ $value }}% for more than 2 minutes'
+
+      - alert: HighMemoryUsage
+        expr: (ml_system_memory_usage_bytes / 1024 / 1024 / 1024) > 3
+        for: 5m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'High memory usage detected'
+          description: 'Memory usage is {{ $value }}GB for more than 5 minutes'
+
+      - alert: HighDiskUsage
+        expr: (ml_system_disk_usage_bytes / ml_system_disk_total_bytes) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'High disk usage detected'
+          description: 'Disk usage is {{ $value }}% for more than 10 minutes'
+
+      # Model performance alerts
+      - alert: LowModelAccuracy
+        expr: ml_model_accuracy < 0.8
+        for: 0m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Low model accuracy detected'
+          description: 'Model {{ $labels.model_type }} accuracy is {{ $value }}'
+
+      - alert: HighPredictionLatency
+        expr: histogram_quantile(0.95, rate(ml_model_prediction_duration_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'High prediction latency detected'
+          description: '95th percentile prediction latency is {{ $value }}s'
+
+      - alert: LowModelConfidence
+        expr: histogram_quantile(0.50, rate(ml_model_confidence_score_bucket[5m])) < 0.3
+        for: 10m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Low model confidence detected'
+          description: 'Median model confidence is {{ $value }}'
+
+      # Error rate alerts
+      - alert: HighErrorRate
+        expr: rate(ml_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: ml
+        annotations:
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value }} errors/second'
+
+      - alert: PredictionErrors
+        expr: increase(ml_errors_total{component=~"prediction_.*"}[5m]) > 5
+        for: 0m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Prediction errors detected'
+          description: '{{ $value }} prediction errors in the last 5 minutes'
+
+      # Data quality alerts
+      - alert: DataDriftDetected
+        expr: ml_data_drift_score > 0.1
+        for: 0m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Data drift detected'
+          description: 'Data drift score for {{ $labels.feature_name }} in {{ $labels.model_type }} model is {{ $value }}'
+
+      - alert: LowDataQuality
+        expr: ml_data_quality_score < 0.8
+        for: 0m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Low data quality detected'
+          description: 'Data quality score for {{ $labels.data_source }} - {{ $labels.metric_type }} is {{ $value }}'
+
+      # Training alerts
+      - alert: TrainingFailure
+        expr: increase(ml_errors_total{component=~"training_.*"}[1h]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: ml
+        annotations:
+          summary: 'Model training failure'
+          description: 'Model training has failed {{ $value }} times in the last hour'
+
+      - alert: NoRecentTraining
+        expr: (time() - ml_model_training_duration_seconds) > (7 * 24 * 3600)
+        for: 0m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'No recent model training'
+          description: "Model {{ $labels.model_type }} hasn't been trained in over 7 days"
+
+      # Database alerts
+      - alert: DatabaseConnectionErrors
+        expr: increase(ml_errors_total{component=~"database_.*"}[5m]) > 3
+        for: 0m
+        labels:
+          severity: critical
+          service: ml
+        annotations:
+          summary: 'Database connection errors'
+          description: '{{ $value }} database errors in the last 5 minutes'
+
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, rate(ml_database_operation_duration_seconds_bucket[5m])) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Slow database queries detected'
+          description: '95th percentile database query time is {{ $value }}s'
+
+  - name: ml_business_rules
+    rules:
+      # Business logic alerts
+      - alert: LowPredictionVolume
+        expr: rate(ml_model_predictions_total[1h]) < 0.01
+        for: 30m
+        labels:
+          severity: warning
+          service: ml
+        annotations:
+          summary: 'Low prediction volume'
+          description: 'Prediction rate is {{ $value }} predictions/second'
+
+      - alert: UnbalancedPredictions
+        expr: (ml_model_predictions_total{model_type="diagnostic"} / ml_model_predictions_total{model_type="risk"}) > 10 or (ml_model_predictions_total{model_type="risk"} / ml_model_predictions_total{model_type="diagnostic"}) > 10
+        for: 1h
+        labels:
+          severity: info
+          service: ml
+        annotations:
+          summary: 'Unbalanced prediction usage'
+          description: 'Significant imbalance between diagnostic and risk predictions detected'

@@ -1,0 +1,70 @@
+# FHIR Gateway Requirements
+# Requisitos para o gateway FHIR R4
+
+# FastAPI and web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
+# Pydantic for data validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Data handling
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Database (for persistence if needed)
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+psycopg2-binary>=2.9.7  # PostgreSQL adapter
+
+# HTTP client
+httpx>=0.25.0
+requests>=2.31.0
+
+# XML processing (for FHIR XML support)
+lxml>=4.9.3
+xmltodict>=0.13.0
+
+# JSON processing
+jsonschema>=4.20.0
+
+# Date/time handling
+python-dateutil>=2.8.2
+
+# Logging and monitoring
+loguru>=0.7.2
+prometheus-client>=0.19.0
+
+# Configuration
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+
+# Security
+cryptography>=41.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Background tasks
+celery>=5.3.0
+redis>=5.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+httpx>=0.25.0  # For testing async clients
+
+# Code quality
+black>=23.10.0
+flake8>=6.1.0
+mypy>=1.7.0
+
+# FHIR specific libraries (optional)
+# fhir.resources>=6.5.0  # Official FHIR resource models
+# fhirclient>=4.1.0  # FHIR client library
+
+# Validation
+jsonschema>=4.20.0
+email-validator>=2.1.0

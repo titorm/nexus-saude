@@ -1,0 +1,42 @@
+# Development Dependencies (além das de requirements.txt)
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0
+httpx-mock==0.9.1
+
+# Code Quality
+black==23.11.0
+isort==5.12.0
+flake8==6.1.0
+mypy==1.7.1
+pre-commit==3.6.0
+bandit==1.7.5
+
+# Jupyter & Analysis
+jupyter==1.0.0
+jupyterlab==4.0.9
+ipywidgets==8.1.1
+notebook==7.0.6
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.4.8
+mkdocstrings==0.24.0
+
+# Profiling & Performance
+py-spy==0.3.14
+memory-profiler==0.61.0
+line-profiler==4.1.1
+
+# Model Explanation
+shap==0.43.0
+lime==0.2.0.1
+eli5==0.13.0
+
+# API Testing
+locust==2.17.0
+faker==20.1.0

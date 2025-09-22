@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  data-warehouse-api:
+    build: .
+    container_name: nexus-data-warehouse
+    ports:
+      - '8006:8006'
+    environment:
+      - SERVICE_PORT=8006
+      - DATABASE_URL=postgresql+asyncpg://datawarehouse:dw_password@postgres-dw:5432/nexus_datawarehouse
+      - REDIS_URL=redis://redis-dw:6379/2
+    depends_on:
+      - postgres-dw
+      - redis-dw
+    volumes:
+      - ./exports:/tmp/exports
+      - ./reports:/tmp/reports
+      - ./logs:/var/log/nexus-saude
+    networks:
+      - nexus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8006/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-dw:
+    image: postgres:15
+    container_name: nexus-postgres-dw
+    environment:
+      - POSTGRES_DB=nexus_datawarehouse
+      - POSTGRES_USER=datawarehouse
+      - POSTGRES_PASSWORD=dw_password
+    ports:
+      - '5436:5432'
+    volumes:
+      - postgres_dw_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - nexus-network
+    restart: unless-stopped
+
+  redis-dw:
+    image: redis:7-alpine
+    container_name: nexus-redis-dw
+    ports:
+      - '6381:6379'
+    volumes:
+      - redis_dw_data:/data
+    networks:
+      - nexus-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Analytics Worker for background processing
+  analytics-worker:
+    build: .
+    container_name: nexus-analytics-worker
+    command: python -m celery worker -A main.celery --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://datawarehouse:dw_password@postgres-dw:5432/nexus_datawarehouse
+      - REDIS_URL=redis://redis-dw:6379/2
+      - WORKER_TYPE=analytics
+    depends_on:
+      - postgres-dw
+      - redis-dw
+    volumes:
+      - ./exports:/tmp/exports
+      - ./reports:/tmp/reports
+    networks:
+      - nexus-network
+    restart: unless-stopped
+
+  # ETL Worker for data processing
+  etl-worker:
+    build: .
+    container_name: nexus-etl-worker
+    command: python -m celery worker -A main.celery --loglevel=info --queue=etl
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://datawarehouse:dw_password@postgres-dw:5432/nexus_datawarehouse
+      - REDIS_URL=redis://redis-dw:6379/2
+      - WORKER_TYPE=etl
+    depends_on:
+      - postgres-dw
+      - redis-dw
+    networks:
+      - nexus-network
+    restart: unless-stopped
+
+  # Scheduler for automated tasks
+  scheduler:
+    build: .
+    container_name: nexus-dw-scheduler
+    command: python -m celery beat -A main.celery --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://datawarehouse:dw_password@postgres-dw:5432/nexus_datawarehouse
+      - REDIS_URL=redis://redis-dw:6379/2
+    depends_on:
+      - postgres-dw
+      - redis-dw
+    networks:
+      - nexus-network
+    restart: unless-stopped
+
+volumes:
+  postgres_dw_data:
+    driver: local
+  redis_dw_data:
+    driver: local
+
+networks:
+  nexus-network:
+    external: true

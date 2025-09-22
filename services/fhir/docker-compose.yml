@@ -1,0 +1,97 @@
+# FHIR Gateway Docker Compose
+version: '3.8'
+
+services:
+  fhir-gateway:
+    build: .
+    container_name: nexus-fhir-gateway
+    ports:
+      - '8004:8004'
+      - '9004:9004' # Metrics port
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8004
+      - DATABASE_URL=postgresql://fhir_user:fhir_pass@postgres:5432/fhir_gateway
+      - REDIS_URL=redis://redis:6379/4
+      - CELERY_BROKER_URL=redis://redis:6379/5
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/var/log
+      - ./files:/var/fhir/files
+      - ./backups:/var/fhir/backups
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexus-fhir-postgres
+    environment:
+      - POSTGRES_DB=fhir_gateway
+      - POSTGRES_USER=fhir_user
+      - POSTGRES_PASSWORD=fhir_pass
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-fhir-redis
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+  fhir-worker:
+    build: .
+    container_name: nexus-fhir-worker
+    command: celery -A main.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://fhir_user:fhir_pass@postgres:5432/fhir_gateway
+      - CELERY_BROKER_URL=redis://redis:6379/5
+      - CELERY_RESULT_BACKEND=redis://redis:6379/5
+    volumes:
+      - ./logs:/var/log
+      - ./files:/var/fhir/files
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+  fhir-monitor:
+    image: prom/prometheus:latest
+    container_name: nexus-fhir-monitor
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - nexus-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  nexus-network:
+    external: true
