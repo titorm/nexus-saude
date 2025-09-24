@@ -159,7 +159,7 @@ export async function classificationRoutes(fastify: FastifyInstance) {
         const databaseService = fastify.databaseService;
         const monitoringService = fastify.monitoringService;
 
-        if (!documentClassifier) {
+        if (!documentClassifier || !documentClassifier.classifyDocument) {
           reply.code(500);
           return {
             error: 'Service Error',
@@ -222,9 +222,9 @@ export async function classificationRoutes(fastify: FastifyInstance) {
         const processingTime = Date.now() - Date.now();
 
         // Record error metrics
-        const monitoringService = (fastify as any).monitoringService;
+        const monitoringService = fastify.monitoringService;
         if (monitoringService) {
-          monitoringService.recordRequest('document_classification', processingTime, false);
+          monitoringService.recordRequest?.('document_classification', processingTime, false);
         }
 
         fastify.log.error('Document classification failed:', error);
@@ -328,6 +328,10 @@ export async function classificationRoutes(fastify: FastifyInstance) {
         const startTime = Date.now();
 
         // Process documents in batch
+        if (!documentClassifier.batchClassifyDocuments) {
+          reply.code(500);
+          return { error: 'Service Error', message: 'Document classifier not available' };
+        }
         const results = await documentClassifier.batchClassifyDocuments(documents);
 
         const processingTime = Date.now() - startTime;
@@ -409,9 +413,9 @@ export async function classificationRoutes(fastify: FastifyInstance) {
         const processingTime = Date.now() - Date.now();
 
         // Record error metrics
-        const monitoringService = (fastify as any).monitoringService;
+        const monitoringService = fastify.monitoringService;
         if (monitoringService) {
-          monitoringService.recordRequest('document_classification_batch', processingTime, false);
+          monitoringService.recordRequest?.('document_classification_batch', processingTime, false);
         }
 
         fastify.log.error('Batch document classification failed:', error);
@@ -472,7 +476,7 @@ export async function classificationRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest<{ Params: { documentId: string } }>, reply: FastifyReply) => {
       try {
         const { documentId } = request.params;
-        const documentClassifier = (fastify as any).documentClassifier;
+        const documentClassifier = fastify.documentClassifier;
 
         if (!documentClassifier) {
           reply.code(500);
@@ -482,7 +486,7 @@ export async function classificationRoutes(fastify: FastifyInstance) {
           };
         }
 
-        const history = documentClassifier.getClassificationHistory(documentId);
+        const history = documentClassifier.getClassificationHistory?.(documentId);
 
         if (!history) {
           reply.code(404);

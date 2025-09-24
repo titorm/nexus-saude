@@ -4,7 +4,7 @@
  */
 
 import Fastify from 'fastify';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -35,21 +35,30 @@ export async function createApp(): Promise<FastifyInstance> {
   });
 
   // Security middleware
-  await fastify.register(helmet, {
-    contentSecurityPolicy: false,
-  });
+  await fastify.register(
+    helmet as unknown as FastifyPluginAsync,
+    {
+      contentSecurityPolicy: false,
+    } as any
+  );
 
   // CORS configuration
-  await fastify.register(cors, {
-    origin: config.allowedOrigins,
-    credentials: true,
-  });
+  await fastify.register(
+    cors as unknown as FastifyPluginAsync,
+    {
+      origin: config.allowedOrigins,
+      credentials: true,
+    } as any
+  );
 
   // Rate limiting
-  await fastify.register(rateLimit, {
-    max: 100,
-    timeWindow: '1 minute',
-  });
+  await fastify.register(
+    rateLimit as unknown as FastifyPluginAsync,
+    {
+      max: 100,
+      timeWindow: '1 minute',
+    } as any
+  );
 
   // Initialize services
   databaseService = new DatabaseService();
@@ -64,26 +73,14 @@ export async function createApp(): Promise<FastifyInstance> {
   reportGenerator = new ReportGenerator(analyticsEngine, databaseService);
   schedulerService = new SchedulerService();
 
-  // Make services available globally for routes (typed in src/types/global.d.ts)
-  // Local typed view of the global object for this service
-  interface LocalGlobal {
-    etlPipeline?: ETLPipeline;
-    analyticsEngine?: AnalyticsEngine;
-    reportGenerator?: ReportGenerator;
-    dataConnector?: DataConnector;
-    schedulerService?: SchedulerService;
-    cacheService?: CacheService;
-    databaseService?: DatabaseService;
-  }
-
-  const gw = globalThis as unknown as LocalGlobal;
-  gw.etlPipeline = etlPipeline;
-  gw.analyticsEngine = analyticsEngine;
-  gw.reportGenerator = reportGenerator;
-  gw.dataConnector = dataConnector;
-  gw.schedulerService = schedulerService;
-  gw.cacheService = cacheService;
-  gw.databaseService = databaseService;
+  // Decorate fastify instance so route handlers can access services via `fastify.<service>`
+  fastify.decorate('etlPipeline', etlPipeline);
+  fastify.decorate('analyticsEngine', analyticsEngine);
+  fastify.decorate('reportGenerator', reportGenerator);
+  fastify.decorate('dataConnector', dataConnector);
+  fastify.decorate('schedulerService', schedulerService);
+  fastify.decorate('cacheService', cacheService);
+  fastify.decorate('databaseService', databaseService);
 
   // Initialize ETL pipeline
   await etlPipeline.initialize();

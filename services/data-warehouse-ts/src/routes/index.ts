@@ -9,27 +9,8 @@ export async function setupRoutes(fastify: FastifyInstance): Promise<void> {
   logger.info('Setting up data warehouse routes...');
 
   // Health check
-  fastify.get('/health', async () => {
-    return {
-      status: 'healthy',
-      service: 'data-warehouse',
-      timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0',
-    };
-  });
-
-  // Status endpoint
-  fastify.get('/status', async () => {
-    return {
-      services: {
-        database: true, // Mock - would check actual service
-        cache: true, // Mock - would check actual service
-        scheduler: true, // Mock - would check actual service
-      },
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-    };
-  });
+  // Additional API routes for data warehouse can be registered here.
+  // Note: health/status endpoints are provided by the main application in src/index.ts
 
   logger.info('Data warehouse routes configured');
 }

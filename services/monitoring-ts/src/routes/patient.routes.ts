@@ -9,8 +9,8 @@ export async function patientRoutes(fastify: FastifyInstance): Promise<void> {
   // Get patient metrics
   fastify.get('/metrics', async (request, reply) => {
     try {
-      const patientMonitor = globalThis.patientMonitor;
-      const metrics = await patientMonitor.getPatientMetrics();
+      const patientMonitor = fastify.patientMonitor;
+      const metrics = patientMonitor ? await patientMonitor.getPatientMetrics() : {};
       return { success: true, data: metrics };
     } catch (error) {
       logger.error('Failed to get patient metrics', { error });
@@ -23,12 +23,11 @@ export async function patientRoutes(fastify: FastifyInstance): Promise<void> {
     try {
       const { patientId } = request.params as { patientId: string };
       const { limit } = request.query as { limit?: string };
-      const patientMonitor = globalThis.patientMonitor;
+      const patientMonitor = fastify.patientMonitor;
 
-      const vitals = await patientMonitor.getPatientVitals(
-        patientId,
-        limit ? parseInt(limit) : undefined
-      );
+      const vitals = patientMonitor
+        ? await patientMonitor.getPatientVitals(patientId, limit ? parseInt(limit) : undefined)
+        : [];
 
       return { success: true, data: vitals };
     } catch (error) {
@@ -48,8 +47,8 @@ export async function patientRoutes(fastify: FastifyInstance): Promise<void> {
         ...(body || {}),
       };
 
-      const patientMonitor = globalThis.patientMonitor;
-      await patientMonitor.recordVitalSigns(vitalSigns);
+      const patientMonitor = fastify.patientMonitor;
+      await patientMonitor?.recordVitalSigns?.(vitalSigns);
 
       return { success: true, message: 'Vital signs recorded successfully' };
     } catch (error) {
@@ -63,12 +62,11 @@ export async function patientRoutes(fastify: FastifyInstance): Promise<void> {
     try {
       const { patientId } = request.params as { patientId: string };
       const { limit } = request.query as { limit?: string };
-      const patientMonitor = globalThis.patientMonitor;
+      const patientMonitor = fastify.patientMonitor;
 
-      const alerts = await patientMonitor.getPatientAlerts(
-        patientId,
-        limit ? parseInt(limit) : undefined
-      );
+      const alerts = patientMonitor
+        ? await patientMonitor.getPatientAlerts(patientId, limit ? parseInt(limit) : undefined)
+        : [];
 
       return { success: true, data: alerts };
     } catch (error) {
@@ -80,8 +78,8 @@ export async function patientRoutes(fastify: FastifyInstance): Promise<void> {
   // Simulate patient data (for testing)
   fastify.post('/simulate', async (request, reply) => {
     try {
-      const patientMonitor = globalThis.patientMonitor;
-      await patientMonitor.simulatePatientData();
+      const patientMonitor = fastify.patientMonitor;
+      await patientMonitor?.simulatePatientData?.();
       return { success: true, message: 'Patient data simulation completed' };
     } catch (error) {
       logger.error('Failed to simulate patient data', { error });

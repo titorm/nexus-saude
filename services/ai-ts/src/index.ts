@@ -115,7 +115,13 @@ async function initializeServices() {
   try {
     // Initialize database
     databaseService = new DatabaseService();
-    await databaseService.connect();
+    try {
+      await databaseService.connect();
+    } catch (dbErr) {
+      logger.warn('Database connection failed, using dev fallback', String(dbErr));
+      const { createDevDatabaseService } = await import('./services/dev-database');
+      databaseService = createDevDatabaseService() as unknown as DatabaseService;
+    }
 
     // Initialize monitoring
     monitoringService = new MonitoringService();
@@ -222,8 +228,8 @@ fastify.get(
 );
 
 // Register application routes
-// registerRoutes expects a FastifyInstance; cast to any to avoid server type incompatibilities (http2 vs http)
-await registerRoutes(fastify as any);
+// registerRoutes expects a FastifyInstance; provide typed `fastify` instead of casting
+await registerRoutes(fastify);
 
 // Error handler
 fastify.setErrorHandler((error, request, reply) => {

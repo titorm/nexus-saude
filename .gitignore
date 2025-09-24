@@ -173,3 +173,4 @@ Dockerfile.prod
 # Misc
 *.tgz
 *.tar.gz
+.vercel

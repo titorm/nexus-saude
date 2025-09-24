@@ -40,16 +40,16 @@ export class MonitoringService {
   private healthStatus: HealthStatus = {
     database: 'unknown',
     ai_models: 'unknown',
-    knowledge_base: 'unknown'
+    knowledge_base: 'unknown',
   };
-  
+
   private systemMetrics: SystemMetrics = {
     memory: { used: 0, total: 0, percentage: 0 },
     cpu: { usage: 0 },
     uptime: 0,
     activeConnections: 0,
     requestsPerMinute: 0,
-    averageResponseTime: 0
+    averageResponseTime: 0,
   };
 
   private aiMetrics: AIMetrics = {
@@ -58,7 +58,7 @@ export class MonitoringService {
     averageConfidence: 0,
     averageProcessingTime: 0,
     errorRate: 0,
-    modelLoadTime: 0
+    modelLoadTime: 0,
   };
 
   private requestTimes: number[] = [];
@@ -76,20 +76,19 @@ export class MonitoringService {
   async initialize(): Promise<void> {
     try {
       logger.info('Initializing Monitoring Service...');
-      
+
       const startTime = Date.now();
-      
+
       // Start metrics collection
       this.startMetricsCollection();
-      
+
       // Set initial health status
       await this.updateHealthStatus();
-      
+
       this.isInitialized = true;
-      
+
       const initTime = Date.now() - startTime;
       logger.info(`Monitoring Service initialized in ${initTime}ms`);
-      
     } catch (error) {
       logError(error, 'MonitoringService.initialize');
       throw new Error('Failed to initialize Monitoring Service');
@@ -100,10 +99,12 @@ export class MonitoringService {
    * Check if monitoring service is healthy
    */
   isHealthy(): boolean {
-    return this.isInitialized && 
-           this.healthStatus.database === 'healthy' &&
-           this.healthStatus.ai_models === 'loaded' &&
-           this.healthStatus.knowledge_base === 'ready';
+    return (
+      this.isInitialized &&
+      this.healthStatus.database === 'healthy' &&
+      this.healthStatus.ai_models === 'loaded' &&
+      this.healthStatus.knowledge_base === 'ready'
+    );
   }
 
   /**
@@ -136,7 +137,7 @@ export class MonitoringService {
   recordRequest(responseTime: number, isError: boolean = false): void {
     this.totalRequests++;
     this.requestTimes.push(responseTime);
-    
+
     if (isError) {
       this.errorCount++;
     }
@@ -153,10 +154,10 @@ export class MonitoringService {
   recordAIQuery(processingTime: number, confidence: number): void {
     this.aiMetrics.totalQueries++;
     this.queryTimes.push(processingTime);
-    
+
     // Update confidence moving average
-    this.aiMetrics.averageConfidence = 
-      (this.aiMetrics.averageConfidence * (this.aiMetrics.totalQueries - 1) + confidence) / 
+    this.aiMetrics.averageConfidence =
+      (this.aiMetrics.averageConfidence * (this.aiMetrics.totalQueries - 1) + confidence) /
       this.aiMetrics.totalQueries;
 
     // Keep only last 1000 queries for moving average
@@ -179,18 +180,17 @@ export class MonitoringService {
     try {
       // Check database health (would integrate with DatabaseService)
       this.healthStatus.database = 'healthy'; // Placeholder
-      
+
       // Check AI models status
       this.healthStatus.ai_models = 'loaded'; // Placeholder
-      
+
       // Check knowledge base status
       this.healthStatus.knowledge_base = 'ready'; // Placeholder
-      
+
       // Check Redis if configured
       if (config.redisHost || config.redisUrl) {
         this.healthStatus.redis = 'connected'; // Placeholder
       }
-      
     } catch (error) {
       logError(error, 'MonitoringService.updateHealthStatus');
     }
@@ -206,7 +206,7 @@ export class MonitoringService {
       this.systemMetrics.memory = {
         used: memUsage.heapUsed,
         total: memUsage.heapTotal,
-        percentage: (memUsage.heapUsed / memUsage.heapTotal) * 100
+        percentage: (memUsage.heapUsed / memUsage.heapTotal) * 100,
       };
 
       // Uptime
@@ -214,16 +214,13 @@ export class MonitoringService {
 
       // Average response time
       if (this.requestTimes.length > 0) {
-        this.systemMetrics.averageResponseTime = 
+        this.systemMetrics.averageResponseTime =
           this.requestTimes.reduce((sum, time) => sum + time, 0) / this.requestTimes.length;
       }
 
       // Requests per minute (approximate)
-      const recentRequests = this.requestTimes.filter(
-        time => Date.now() - time < 60000
-      ).length;
+      const recentRequests = this.requestTimes.filter((time) => Date.now() - time < 60000).length;
       this.systemMetrics.requestsPerMinute = recentRequests;
-
     } catch (error) {
       logError(error, 'MonitoringService.updateSystemMetrics');
     }
@@ -236,22 +233,19 @@ export class MonitoringService {
     try {
       // Average processing time
       if (this.queryTimes.length > 0) {
-        this.aiMetrics.averageProcessingTime = 
+        this.aiMetrics.averageProcessingTime =
           this.queryTimes.reduce((sum, time) => sum + time, 0) / this.queryTimes.length;
       }
 
       // Queries per minute (approximate)
       const now = Date.now();
-      const recentQueries = this.queryTimes.filter(
-        time => now - time < 60000
-      ).length;
+      const recentQueries = this.queryTimes.filter((time) => now - time < 60000).length;
       this.aiMetrics.queriesPerMinute = recentQueries;
 
       // Error rate
       if (this.totalRequests > 0) {
         this.aiMetrics.errorRate = (this.errorCount / this.totalRequests) * 100;
       }
-
     } catch (error) {
       logError(error, 'MonitoringService.updateAIMetrics');
     }
@@ -282,7 +276,7 @@ export class MonitoringService {
       total_ai_queries: this.aiMetrics.totalQueries,
       ai_queries_per_minute: this.aiMetrics.queriesPerMinute,
       average_confidence: Math.round(this.aiMetrics.averageConfidence * 100) / 100,
-      error_rate_percent: Math.round(this.aiMetrics.errorRate * 100) / 100
+      error_rate_percent: Math.round(this.aiMetrics.errorRate * 100) / 100,
     });
   }
 
@@ -304,16 +298,20 @@ export class MonitoringService {
 
     // Determine overall status
     let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-    
-    if (health.database === 'unhealthy' || 
-        health.ai_models === 'failed' || 
-        health.knowledge_base === 'failed') {
+
+    if (
+      health.database === 'unhealthy' ||
+      health.ai_models === 'failed' ||
+      health.knowledge_base === 'failed'
+    ) {
       overallStatus = 'unhealthy';
-    } else if (health.database === 'unknown' || 
-               health.ai_models === 'loading' || 
-               health.knowledge_base === 'loading' ||
-               system.memory.percentage > 90 ||
-               ai.errorRate > 10) {
+    } else if (
+      health.database === 'unknown' ||
+      health.ai_models === 'loading' ||
+      health.knowledge_base === 'loading' ||
+      system.memory.percentage > 90 ||
+      ai.errorRate > 10
+    ) {
       overallStatus = 'degraded';
     }
 
@@ -324,7 +322,7 @@ export class MonitoringService {
       timestamp: new Date().toISOString(),
       health,
       system,
-      ai
+      ai,
     };
   }
 
@@ -347,7 +345,9 @@ export class MonitoringService {
     metrics.push(`# TYPE ai_assistant_requests_total counter`);
     metrics.push(`ai_assistant_requests_total ${this.totalRequests}`);
 
-    metrics.push(`# HELP ai_assistant_request_duration_ms Average request duration in milliseconds`);
+    metrics.push(
+      `# HELP ai_assistant_request_duration_ms Average request duration in milliseconds`
+    );
     metrics.push(`# TYPE ai_assistant_request_duration_ms gauge`);
     metrics.push(`ai_assistant_request_duration_ms ${this.systemMetrics.averageResponseTime}`);
 
@@ -356,7 +356,9 @@ export class MonitoringService {
     metrics.push(`# TYPE ai_assistant_queries_total counter`);
     metrics.push(`ai_assistant_queries_total ${this.aiMetrics.totalQueries}`);
 
-    metrics.push(`# HELP ai_assistant_query_duration_ms Average query processing time in milliseconds`);
+    metrics.push(
+      `# HELP ai_assistant_query_duration_ms Average query processing time in milliseconds`
+    );
     metrics.push(`# TYPE ai_assistant_query_duration_ms gauge`);
     metrics.push(`ai_assistant_query_duration_ms ${this.aiMetrics.averageProcessingTime}`);
 
@@ -371,9 +373,15 @@ export class MonitoringService {
     // Health status (1 = healthy, 0 = unhealthy)
     metrics.push(`# HELP ai_assistant_health_status Health status (1 = healthy, 0 = unhealthy)`);
     metrics.push(`# TYPE ai_assistant_health_status gauge`);
-    metrics.push(`ai_assistant_health_status{component="database"} ${this.healthStatus.database === 'healthy' ? 1 : 0}`);
-    metrics.push(`ai_assistant_health_status{component="ai_models"} ${this.healthStatus.ai_models === 'loaded' ? 1 : 0}`);
-    metrics.push(`ai_assistant_health_status{component="knowledge_base"} ${this.healthStatus.knowledge_base === 'ready' ? 1 : 0}`);
+    metrics.push(
+      `ai_assistant_health_status{component="database"} ${this.healthStatus.database === 'healthy' ? 1 : 0}`
+    );
+    metrics.push(
+      `ai_assistant_health_status{component="ai_models"} ${this.healthStatus.ai_models === 'loaded' ? 1 : 0}`
+    );
+    metrics.push(
+      `ai_assistant_health_status{component="knowledge_base"} ${this.healthStatus.knowledge_base === 'ready' ? 1 : 0}`
+    );
 
     return metrics.join('\n') + '\n';
   }
@@ -381,8 +389,19 @@ export class MonitoringService {
   /**
    * Set component health status
    */
-  setComponentHealth(component: keyof HealthStatus, status: string): void {
-    (this.healthStatus as any)[component] = status;
+  setComponentHealth(
+    component: keyof HealthStatus,
+    status: HealthStatus[keyof HealthStatus] | string
+  ): void {
+    // Accept only known statuses for the component where possible; fall back to string assignment.
+    try {
+      (this.healthStatus[component] as any) = status as any;
+    } catch {
+      // Fallback: assign as unknown
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      this.healthStatus[component] = status as any;
+    }
   }
 
   /**
@@ -391,14 +410,13 @@ export class MonitoringService {
   async cleanup(): Promise<void> {
     try {
       logger.info('Cleaning up Monitoring Service...');
-      
+
       if (this.metricsInterval) {
         clearInterval(this.metricsInterval);
       }
-      
+
       this.isInitialized = false;
       logger.info('Monitoring Service cleaned up');
-      
     } catch (error) {
       logError(error, 'MonitoringService.cleanup');
     }

@@ -9,7 +9,10 @@ export async function dashboardRoutes(fastify: FastifyInstance): Promise<void> {
   // Get dashboard data
   fastify.get('/data', async (request, reply) => {
     try {
-      const dashboardManager = globalThis.dashboardManager;
+      const dashboardManager = fastify.dashboardManager;
+      if (!dashboardManager || !dashboardManager.getDashboardData) {
+        return reply.status(503).send({ success: false, error: 'Dashboard manager unavailable' });
+      }
       const data = dashboardManager.getDashboardData();
       return { success: true, data };
     } catch (error) {
@@ -21,7 +24,10 @@ export async function dashboardRoutes(fastify: FastifyInstance): Promise<void> {
   // Get dashboard configuration
   fastify.get('/config', async (request, reply) => {
     try {
-      const dashboardManager = globalThis.dashboardManager;
+      const dashboardManager = fastify.dashboardManager;
+      if (!dashboardManager || !dashboardManager.getDashboardConfig) {
+        return reply.status(503).send({ success: false, error: 'Dashboard manager unavailable' });
+      }
       const config = await dashboardManager.getDashboardConfig();
       return { success: true, data: config };
     } catch (error) {
@@ -33,7 +39,10 @@ export async function dashboardRoutes(fastify: FastifyInstance): Promise<void> {
   // Get all widgets
   fastify.get('/widgets', async (request, reply) => {
     try {
-      const dashboardManager = globalThis.dashboardManager;
+      const dashboardManager = fastify.dashboardManager;
+      if (!dashboardManager || !dashboardManager.getAllWidgets) {
+        return reply.status(503).send({ success: false, error: 'Dashboard manager unavailable' });
+      }
       const widgets = dashboardManager.getAllWidgets();
       return { success: true, data: widgets };
     } catch (error) {
@@ -46,7 +55,10 @@ export async function dashboardRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/widgets/:widgetId', async (request, reply) => {
     try {
       const { widgetId } = request.params as { widgetId: string };
-      const dashboardManager = globalThis.dashboardManager;
+      const dashboardManager = fastify.dashboardManager;
+      if (!dashboardManager || !dashboardManager.getWidget) {
+        return reply.status(503).send({ success: false, error: 'Dashboard manager unavailable' });
+      }
       const widget = dashboardManager.getWidget(widgetId);
 
       if (!widget) {
@@ -64,7 +76,10 @@ export async function dashboardRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/export', async (request, reply) => {
     try {
       const { format = 'json' } = request.query as { format?: 'json' | 'csv' };
-      const dashboardManager = globalThis.dashboardManager;
+      const dashboardManager = fastify.dashboardManager;
+      if (!dashboardManager || !dashboardManager.exportDashboardData) {
+        return reply.status(503).send({ success: false, error: 'Dashboard manager unavailable' });
+      }
       const exportData = await dashboardManager.exportDashboardData(format);
 
       const contentType = format === 'csv' ? 'text/csv' : 'application/json';

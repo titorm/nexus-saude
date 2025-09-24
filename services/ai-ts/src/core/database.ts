@@ -28,11 +28,14 @@ class InMemoryDatabase implements IDatabase {
     const text = (_text || '').trim().toUpperCase();
 
     if (text.startsWith('SELECT 1') || text.includes('NOW()')) {
-      return { rows: [{ now: new Date().toISOString() }], rowCount: 1 } as any;
+      return { rows: [{ now: new Date().toISOString() }], rowCount: 1 } as {
+        rows: any[];
+        rowCount?: number;
+      };
     }
 
     // For COUNT or simple queries return empty result
-    return { rows: [], rowCount: 0 } as any;
+    return { rows: [], rowCount: 0 } as { rows: any[]; rowCount?: number };
   }
 
   async end() {

@@ -9,8 +9,8 @@ export async function systemRoutes(fastify: FastifyInstance): Promise<void> {
   // Get system metrics
   fastify.get('/metrics', async (request, reply) => {
     try {
-      const systemMonitor = globalThis.systemMonitor;
-      const metrics = await systemMonitor.collectSystemMetrics();
+      const systemMonitor = fastify.systemMonitor;
+      const metrics = systemMonitor ? await systemMonitor.collectSystemMetrics() : {};
       return { success: true, data: metrics };
     } catch (error) {
       logger.error('Failed to get system metrics', { error });
@@ -21,8 +21,8 @@ export async function systemRoutes(fastify: FastifyInstance): Promise<void> {
   // Get system status
   fastify.get('/status', async (request, reply) => {
     try {
-      const systemMonitor = globalThis.systemMonitor;
-      const status = await systemMonitor.getSystemStatus();
+      const systemMonitor = fastify.systemMonitor;
+      const status = systemMonitor ? await systemMonitor.getSystemStatus() : {};
       return { success: true, data: status };
     } catch (error) {
       logger.error('Failed to get system status', { error });
@@ -33,8 +33,8 @@ export async function systemRoutes(fastify: FastifyInstance): Promise<void> {
   // Get health status
   fastify.get('/health', async (request, reply) => {
     try {
-      const systemMonitor = globalThis.systemMonitor;
-      const health = await systemMonitor.getHealthStatus();
+      const systemMonitor = fastify.systemMonitor;
+      const health = systemMonitor ? await systemMonitor.getHealthStatus() : { status: 'unknown' };
       return { success: true, data: health };
     } catch (error) {
       logger.error('Failed to get health status', { error });

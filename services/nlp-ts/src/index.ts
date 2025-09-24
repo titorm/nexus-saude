@@ -9,6 +9,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { config } from './config/index.js';
 import { logger } from './utils/logger.js';
 import { DatabaseService } from './core/database.js';
+import { createDevDatabaseService } from './services/dev-database';
 import { MonitoringService } from './core/monitoring.js';
 import { registerRoutes } from './routes/index.js';
 import { ClinicalNLPProcessor } from './core/clinical-nlp-processor.js';
@@ -150,10 +151,15 @@ async function main() {
   logger.info('Initializing services...');
 
   try {
-    // Initialize database
+    // Initialize database (use dev fallback when no DB configured)
     global.database = new DatabaseService();
-    await global.database.connect();
-    logger.info('Database service initialized');
+    try {
+      await global.database.connect();
+      logger.info('Database service initialized');
+    } catch (dbErr) {
+      logger.warn('Database connection failed, falling back to in-memory dev DB', dbErr);
+      global.database = createDevDatabaseService() as unknown as DatabaseService;
+    }
 
     // Initialize monitoring
     global.monitoring = new MonitoringService();

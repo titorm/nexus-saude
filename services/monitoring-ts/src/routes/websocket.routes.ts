@@ -24,8 +24,8 @@ export async function websocketRoutes(fastify: FastifyInstance): Promise<void> {
     { websocket: true } as any,
     ((connection: WebSocket, request: FastifyRequest) => {
       logger.info('WebSocket connection established');
-      const notificationService = globalThis.notificationService as unknown as NotificationService;
-      notificationService.addWebSocketConnection(connection);
+      const notificationService = fastify.notificationService as NotificationService | undefined;
+      notificationService?.addWebSocketConnection(connection);
 
       // Handle incoming messages
       connection.on('message', (message: WebSocket.Data) => {
@@ -71,8 +71,8 @@ export async function websocketRoutes(fastify: FastifyInstance): Promise<void> {
   // WebSocket status endpoint
   fastify.get('/status', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const notificationService = globalThis.notificationService as unknown as NotificationService;
-      const stats = notificationService.getNotificationStats();
+      const notificationService = fastify.notificationService as NotificationService | undefined;
+      const stats = notificationService ? notificationService.getNotificationStats() : {};
       return { success: true, data: stats };
     } catch (error) {
       logger.error('Failed to get WebSocket status', { error });

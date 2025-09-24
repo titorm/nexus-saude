@@ -68,7 +68,14 @@ export async function createApp(): Promise<FastifyInstance> {
 
   // Initialize services
   databaseService = new DatabaseService();
-  await databaseService.connect();
+  try {
+    await databaseService.connect();
+  } catch (err) {
+    // Fall back to in-src dev DB to allow local startup without Postgres
+    fastify.log.warn('Database connection failed, using dev fallback: ' + String(err));
+    const { createDevDatabaseService } = await import('./services/dev-database');
+    databaseService = createDevDatabaseService() as unknown as DatabaseService;
+  }
 
   notificationService = new NotificationService();
   metricsCollector = new MetricsCollector();
@@ -77,14 +84,14 @@ export async function createApp(): Promise<FastifyInstance> {
   patientMonitor = new PatientMonitor(databaseService, alertEngine);
   dashboardManager = new DashboardManager();
 
-  // Make services available globally for routes (typed via src/types/global.d.ts)
-  globalThis.systemMonitor = systemMonitor;
-  globalThis.patientMonitor = patientMonitor;
-  globalThis.alertEngine = alertEngine;
-  globalThis.metricsCollector = metricsCollector;
-  globalThis.dashboardManager = dashboardManager;
-  globalThis.databaseService = databaseService;
-  globalThis.notificationService = notificationService;
+  // Decorate fastify instance so route handlers can access services via `fastify.<service>`
+  fastify.decorate('systemMonitor', systemMonitor);
+  fastify.decorate('patientMonitor', patientMonitor);
+  fastify.decorate('alertEngine', alertEngine);
+  fastify.decorate('metricsCollector', metricsCollector);
+  fastify.decorate('dashboardManager', dashboardManager);
+  fastify.decorate('databaseService', databaseService);
+  fastify.decorate('notificationService', notificationService);
 
   // Start monitoring services
   await systemMonitor.start();

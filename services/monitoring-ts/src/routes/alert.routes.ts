@@ -9,8 +9,8 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
   // Get all alerts
   fastify.get('/', async (request, reply) => {
     try {
-      const alertEngine = globalThis.alertEngine;
-      const alerts = alertEngine.getAlerts();
+      const alertEngine = fastify.alertEngine;
+      const alerts = alertEngine ? alertEngine.getAlerts() : [];
       return { success: true, data: alerts };
     } catch (error) {
       logger.error('Failed to get alerts', { error });
@@ -22,8 +22,8 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/:alertId', async (request, reply) => {
     try {
       const { alertId } = request.params as { alertId: string };
-      const alertEngine = globalThis.alertEngine;
-      const alert = alertEngine.getAlert(alertId);
+      const alertEngine = fastify.alertEngine;
+      const alert = alertEngine ? alertEngine.getAlert(alertId) : null;
 
       if (!alert) {
         return reply.status(404).send({ success: false, error: 'Alert not found' });
@@ -41,9 +41,9 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
     try {
       const { alertId } = request.params as { alertId: string };
       const { resolvedBy } = request.body as { resolvedBy?: string };
-      const alertEngine = globalThis.alertEngine;
+      const alertEngine = fastify.alertEngine;
 
-      const resolved = await alertEngine.resolveAlert(alertId, resolvedBy);
+      const resolved = alertEngine ? await alertEngine.resolveAlert(alertId, resolvedBy) : false;
 
       if (!resolved) {
         return reply
@@ -61,8 +61,8 @@ export async function alertRoutes(fastify: FastifyInstance): Promise<void> {
   // Get alert statistics
   fastify.get('/stats', async (request, reply) => {
     try {
-      const alertEngine = globalThis.alertEngine;
-      const stats = alertEngine.getAlertStats();
+      const alertEngine = fastify.alertEngine;
+      const stats = alertEngine ? alertEngine.getAlertStats() : {};
       return { success: true, data: stats };
     } catch (error) {
       logger.error('Failed to get alert stats', { error });
