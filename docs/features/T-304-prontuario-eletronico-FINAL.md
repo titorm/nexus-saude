@@ -1,5 +1,7 @@
 # T-304: Prontuário Eletrônico - Implementação Completa
 
+> Merged: This document's implemented content has been consolidated into `docs/IMPLEMENTED_DOCUMENTATION.md`.
+
 ## Status
 
 🚀 **IMPLEMENTADO** - 100% Completo (Data: Dezembro 2024)

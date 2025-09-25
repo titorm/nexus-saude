@@ -1,5 +1,7 @@
 # Sistema de Autenticação Segura - Épico 2
 
+> Merged: This document's implemented content has been consolidated into `docs/IMPLEMENTED_DOCUMENTATION.md`.
+
 ## Visão Geral
 
 Este documento descreve o sistema de autenticação segura implementado para o Nexus Saúde MVP. O sistema fornece autenticação robusta com JWT, autorização baseada em funções (RBAC), proteção contra ataques e auditoria de segurança.

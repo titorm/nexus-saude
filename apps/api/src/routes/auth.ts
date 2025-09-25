@@ -9,19 +9,24 @@ const authService = new AuthService();
 
 export async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/login
-  fastify.post(
-    '/login',
-    {
-      preHandler: [authRateLimit],
-      schema: {
-        body: loginSchema,
-      },
-    },
-    async (request, reply) => {
-      const { email, password } = request.body as { email: string; password: string };
+  fastify.post('/login', { preHandler: [authRateLimit] }, async (request, reply) => {
+      // Validate input using Zod at runtime (avoid passing Zod directly to Fastify schema)
+  let email: string;
+  let password: string;
+  const ip = request.ip || 'unknown';
+      try {
+        const parsed = loginSchema.parse(request.body);
+        ({ email, password } = parsed as { email: string; password: string });
       const ip = request.ip || 'unknown';
 
+      } catch (zodError) {
+        // Zod validation error
+        fastify.log.warn({ error: zodError }, 'Validation failed for /auth/login');
+        return reply.status(400).send({ statusCode: 400, error: 'Bad Request', message: 'Dados inválidos' });
+      }
+
       try {
+        const ip = request.ip || 'unknown';
         const user = await authService.authenticateUser(email, password);
 
         if (!user) {
@@ -278,16 +283,22 @@ export async function authRoutes(fastify: FastifyInstance) {
     '/change-password',
     {
       preHandler: [authMiddleware],
-      schema: {
-        body: changePasswordSchema,
-      },
+      // Validate with Zod at runtime to avoid passing Zod directly to Fastify
     },
     async (request, reply) => {
-      const { currentPassword, newPassword } = request.body as {
-        currentPassword: string;
-        newPassword: string;
-      };
-      const user = request.currentUser!;
+      let currentPassword: string;
+      let newPassword: string;
+      let user = request.currentUser!;
+      try {
+        const parsed = changePasswordSchema.parse(request.body);
+        ({ currentPassword, newPassword } = parsed as {
+          currentPassword: string;
+          newPassword: string;
+        });
+      } catch (zodError) {
+        fastify.log.warn({ error: zodError }, 'Validation failed for /auth/change-password');
+        return reply.status(400).send({ statusCode: 400, error: 'Bad Request', message: 'Dados inválidos' });
+      }
 
       try {
         // Validar força da nova senha

@@ -1,5 +1,7 @@
 # T-303: Frontend de Listagem de Pacientes - Implementação Completa
 
+> Merged: This document's implemented content has been consolidated into `docs/IMPLEMENTED_DOCUMENTATION.md`.
+
 ## Visão Geral
 
 A tarefa T-303 foi **100% concluída** com implementação completa do frontend para listagem de pacientes, incluindo componentes robustos, integração com APIs, e uma experiência de usuário moderna e responsiva.

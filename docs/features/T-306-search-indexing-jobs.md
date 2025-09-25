@@ -1,5 +1,7 @@
 # T-306 Search Indexing Jobs - Implementation Documentation
 
+> Merged: This document's implemented content has been consolidated into `docs/IMPLEMENTED_DOCUMENTATION.md`.
+
 ## 📋 Status: Complete ✅
 
 ### Overview

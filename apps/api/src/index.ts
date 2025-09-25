@@ -93,12 +93,16 @@ const start = async () => {
   try {
     await setupServer();
 
-    // Initialize search job manager
-    const db = await getDb();
-    await initializeSearchJobManager(db);
-    fastify.log.info('🔄 Search job manager initialized');
+    // Initialize search job manager (can be skipped in local dev by setting SKIP_DB=true)
+    if (process.env.SKIP_DB !== 'true') {
+      const db = await getDb();
+      await initializeSearchJobManager(db);
+      fastify.log.info('🔄 Search job manager initialized');
+    } else {
+      fastify.log.warn('Skipping DB initialization and search job manager because SKIP_DB=true');
+    }
 
-    const port = Number(process.env.PORT) || 3001;
+    const port = Number(process.env.PORT) || 3201;
     const host = process.env.HOST || '0.0.0.0';
 
     await fastify.listen({ port, host });

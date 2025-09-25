@@ -17,23 +17,7 @@ const searchService = new SearchService();
 // Search routes function
 export async function searchRoutes(fastify: FastifyInstance) {
   // Global Search
-  fastify.get(
-    '/search/global',
-    {
-      schema: {
-        querystring: globalSearchSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              results: { type: 'array' },
-              total: { type: 'number' },
-              hasMore: { type: 'boolean' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/global', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof globalSearchSchema> }>,
       reply: FastifyReply
@@ -66,21 +50,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Autocomplete
-  fastify.get(
-    '/search/autocomplete',
-    {
-      schema: {
-        querystring: autocompleteSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              suggestions: { type: 'array' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/autocomplete', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof autocompleteSchema> }>,
       reply: FastifyReply
@@ -106,22 +76,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Search Patients
-  fastify.get(
-    '/search/patients',
-    {
-      schema: {
-        querystring: searchPatientsSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              patients: { type: 'array' },
-              total: { type: 'number' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/patients', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof searchPatientsSchema> }>,
       reply: FastifyReply
@@ -153,22 +108,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Search Clinical Notes
-  fastify.get(
-    '/search/clinical-notes',
-    {
-      schema: {
-        querystring: searchClinicalNotesSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              notes: { type: 'array' },
-              total: { type: 'number' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/clinical-notes', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof searchClinicalNotesSchema> }>,
       reply: FastifyReply
@@ -217,22 +157,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Search Appointments
-  fastify.get(
-    '/search/appointments',
-    {
-      schema: {
-        querystring: searchAppointmentsSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              appointments: { type: 'array' },
-              total: { type: 'number' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/appointments', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof searchAppointmentsSchema> }>,
       reply: FastifyReply
@@ -279,22 +204,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Search History
-  fastify.get(
-    '/search/history',
-    {
-      schema: {
-        querystring: searchHistoryQuerySchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              history: { type: 'array' },
-              total: { type: 'number' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/history', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof searchHistoryQuerySchema> }>,
       reply: FastifyReply
@@ -320,25 +230,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Search Analytics
-  fastify.get(
-    '/search/analytics',
-    {
-      schema: {
-        querystring: searchAnalyticsSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              totalSearches: { type: 'number' },
-              popularQueries: { type: 'array' },
-              searchesByType: { type: 'array' },
-              averageResponseTime: { type: 'number' },
-              successRate: { type: 'number' },
-            },
-          },
-        },
-      },
-    },
+  fastify.get('/search/analytics', {},
     async (
       request: FastifyRequest<{ Querystring: z.infer<typeof searchAnalyticsSchema> }>,
       reply: FastifyReply
@@ -357,21 +249,7 @@ export async function searchRoutes(fastify: FastifyInstance) {
   );
 
   // Log Search Event
-  fastify.post(
-    '/search/events',
-    {
-      schema: {
-        body: searchEventSchema,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              success: { type: 'boolean' },
-            },
-          },
-        },
-      },
-    },
+  fastify.post('/search/events', {},
     async (
       request: FastifyRequest<{ Body: z.infer<typeof searchEventSchema> }>,
       reply: FastifyReply
