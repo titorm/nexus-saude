@@ -26,6 +26,7 @@
     "scripts": {
         "build": "turbo build",
         "dev": "turbo dev",
+        "dev:local": "SKIP_DB=true PORT=3201 pnpm --filter @nexus/api dev & pnpm --filter @nexus/web dev",
         "lint": "turbo lint",
         "test": "turbo test",
         "type-check": "turbo type-check",
